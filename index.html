@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173e9b">
+  <link rel="manifest" href="manifest.json">
+  <title>K Dance Manager</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#eef3ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172033}
+    .app{max-width:430px;margin:auto;background:#fff;min-height:100vh;padding-bottom:80px}
+    .header{background:linear-gradient(135deg,#0f2a68,#3975f2);color:white;padding:30px 22px 26px;border-radius:0 0 30px 30px}
+    h1{margin:0;font-size:31px;line-height:1.05}
+    .section{padding:18px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .card{background:#f6f8ff;border:1px solid #e4ebff;border-radius:18px;padding:14px;margin-bottom:12px}
+    .card b{font-size:22px;color:#173e9b;display:block}
+    button{border:0;border-radius:16px;padding:14px;background:#173e9b;color:white;font-weight:800;font-size:14px}
+    .menu{background:#f4f7ff;color:#172033;border:1px solid #e3e9fb;text-align:left;min-height:82px}
+    .page{display:none}.page.on{display:block}
+    input,select,textarea{width:100%;padding:13px;border:1px solid #d9e0ef;border-radius:14px;font-size:15px;margin:6px 0 12px}
+    textarea{min-height:80px}
+    .top{display:flex;gap:10px;align-items:center;padding:14px 18px;border-bottom:1px solid #eee}
+    .back{background:#eef3ff;color:#173e9b;width:auto}
+    .bottom{position:fixed;left:50%;transform:translateX(-50%);bottom:0;max-width:430px;width:100%;display:grid;grid-template-columns:repeat(5,1fr);background:white;border-top:1px solid #ddd;padding:8px 4px}
+    .bottom button{background:white;color:#333;font-size:12px;padding:8px 2px}
+    .list .item{border:1px solid #e6eaf3;border-radius:16px;padding:13px;margin-top:10px}
+    .red{background:#d92d20}.green{background:#20a464}.gray{background:#eef3ff;color:#173e9b}
+    .tablewrap{overflow:auto;border:1px solid #e6eaf3;border-radius:16px;margin-top:12px}
+    table{border-collapse:collapse;min-width:900px;width:100%;font-size:13px}
+    th,td{border-bottom:1px solid #eef1f6;padding:9px;text-align:left;white-space:nowrap}
+    th{background:#f6f8ff;color:#173e9b}
+  </style>
+</head>
+<body>
+<div class="app">
+  <section id="home" class="page on">
+    <div class="header">
+      <h1>K Dance<br>Manager</h1>
+      <p>Dance Studio Management System</p>
+    </div>
+    <div class="section">
+      <div class="grid">
+        <div class="card"><b id="studentCount">0</b>등록 학생</div>
+        <div class="card"><b id="unpaidCount">0</b>미납</div>
+        <div class="card"><b id="ledgerTotal">0원</b>이번달 장부</div>
+        <div class="card"><b id="consultCount">0</b>상담</div>
+      </div>
+      <div class="grid">
+        <button class="menu" onclick="show('students')">👨‍🎓<br>학생관리</button>
+        <button class="menu" onclick="show('consult')">📝<br>상담관리</button>
+        <button class="menu" onclick="show('ledger')">📒<br>월별 장부</button>
+        <button class="menu" onclick="show('message')">📱<br>문자센터</button>
+        <button class="menu" onclick="show('payments')">💳<br>수강료</button>
+        <button class="menu" onclick="show('settings')">⚙️<br>설정</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="students" class="page">
+    <div class="top"><button class="back" onclick="show('home')">←</button><h2>학생관리</h2></div>
+    <div class="section">
+      <button onclick="toggle('studentForm')">+ 학생 등록</button>
+      <div id="studentForm" style="display:none">
+        <input id="sName" placeholder="학생 이름">
+        <input id="sBirth" type="date" placeholder="생년월일">
+        <input id="sPhone" placeholder="학생 연락처">
+        <input id="p1Name" placeholder="보호자① 이름">
+        <select id="p1Type"><option>모</option><option>부</option><option>기타</option></select>
+        <input id="p1Phone" placeholder="보호자① 연락처">
+        <input id="p2Name" placeholder="보호자② 이름">
+        <select id="p2Type"><option>부</option><option>모</option><option>기타</option></select>
+        <input id="p2Phone" placeholder="보호자② 연락처">
+        <input id="sAddress" placeholder="주소">
+        <input id="sClass" placeholder="수강반">
+        <input id="sAmount" type="number" placeholder="결제금액">
+        <textarea id="sMemo" placeholder="메모"></textarea>
+        <button onclick="saveStudent()">저장</button>
+      </div>
+      <div id="studentList" class="list"></div>
+    </div>
+  </section>
+
+  <section id="consult" class="page">
+    <div class="top"><button class="back" onclick="show('home')">←</button><h2>상담관리</h2></div>
+    <div class="section">
+      <input id="cName" placeholder="상담 학생 이름">
+      <input id="cPhone" placeholder="연락처">
+      <select id="cStatus"><option>상담 전</option><option>상담 예약</option><option>실제 상담 완료</option><option>등록 고민중</option><option>등록 완료</option><option>등록 안함</option></select>
+      <textarea id="cMemo" placeholder="상담 메모"></textarea>
+      <button onclick="saveConsult()">상담 저장</button>
+      <div id="consultList" class="list"></div>
+    </div>
+  </section>
+
+  <section id="ledger" class="page">
+    <div class="top"><button class="back" onclick="show('home')">←</button><h2>월별 장부</h2></div>
+    <div class="section">
+      <button onclick="downloadCSV()">엑셀용 CSV 다운로드</button>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>이름</th><th>생년월일</th><th>학생연락처</th><th>보호자①</th><th>보호자②</th><th>등록반</th><th>결제금액</th><th>메모</th></tr></thead>
+          <tbody id="ledgerBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="message" class="page">
+    <div class="top"><button class="back" onclick="show('home')">←</button><h2>문자센터</h2></div>
+    <div class="section">
+      <select id="msgType" onchange="makeMessage()">
+        <option value="pay">수강료 안내</option>
+        <option value="renew">재등록 안내</option>
+        <option value="notice">공지 안내</option>
+      </select>
+      <input id="msgName" placeholder="학생 이름">
+      <input id="msgAmount" placeholder="금액">
+      <textarea id="msgText"></textarea>
+      <button onclick="makeMessage()">문구 만들기</button>
+      <button class="green" onclick="copyMessage()">문구 복사</button>
+      <button onclick="openSMS()">문자앱 열기</button>
+    </div>
+  </section>
+
+  <section id="payments" class="page">
+    <div class="top"><button class="back" onclick="show('home')">←</button><h2>수강료</h2></div>
+    <div class="section"><div class="card">정식 버전에서 학생정보와 자동 연동 예정입니다.</div></div>
+  </section>
+
+  <section id="settings" class="page">
+    <div class="top"><button class="back" onclick="show('home')">←</button><h2>설정</h2></div>
+    <div class="section"><button class="red" onclick="clearAll()">테스트 데이터 삭제</button></div>
+  </section>
+
+  <div class="bottom">
+    <button onclick="show('home')">홈</button>
+    <button onclick="show('students')">학생</button>
+    <button onclick="show('ledger')">장부</button>
+    <button onclick="show('message')">문자</button>
+    <button onclick="show('settings')">설정</button>
+  </div>
+</div>
+<script>
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+
+let students = JSON.parse(localStorage.getItem('students') || '[]');
+let consults = JSON.parse(localStorage.getItem('consults') || '[]');
+
+function show(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));document.getElementById(id).classList.add('on');render();}
+function toggle(id){const el=document.getElementById(id);el.style.display=el.style.display==='none'?'block':'none'}
+function won(n){return Number(n||0).toLocaleString('ko-KR')+'원'}
+
+function saveStudent(){
+  students.push({name:sName.value,birth:sBirth.value,phone:sPhone.value,p1Name:p1Name.value,p1Type:p1Type.value,p1Phone:p1Phone.value,p2Name:p2Name.value,p2Type:p2Type.value,p2Phone:p2Phone.value,address:sAddress.value,cls:sClass.value,amount:Number(sAmount.value||0),memo:sMemo.value});
+  localStorage.setItem('students',JSON.stringify(students));
+  sName.value=sPhone.value=p1Name.value=p1Phone.value=p2Name.value=p2Phone.value=sAddress.value=sClass.value=sAmount.value=sMemo.value='';
+  render();
+}
+function saveConsult(){consults.push({name:cName.value,phone:cPhone.value,status:cStatus.value,memo:cMemo.value});localStorage.setItem('consults',JSON.stringify(consults));render();}
+function render(){
+  studentCount.textContent=students.length;
+  consultCount.textContent=consults.length;
+  unpaidCount.textContent=students.filter(s=>!s.amount).length;
+  ledgerTotal.textContent=won(students.reduce((a,s)=>a+(s.amount||0),0));
+  studentList.innerHTML=students.map((s,i)=>`<div class="item"><b>${s.name}</b>${s.cls||''}<br>학생 ${s.phone||'-'}<br>${s.p1Type||''} ${s.p1Name||''} ${s.p1Phone||''}<br><button class="red" onclick="delStudent(${i})">삭제</button></div>`).join('');
+  consultList.innerHTML=consults.map((c,i)=>`<div class="item"><b>${c.name}</b>${c.status}<br>${c.phone}<br>${c.memo}<br><button class="red" onclick="delConsult(${i})">삭제</button></div>`).join('');
+  ledgerBody.innerHTML=students.map(s=>`<tr><td>${s.name||''}</td><td>${s.birth||''}</td><td>${s.phone||''}</td><td>${s.p1Type||''} ${s.p1Name||''} ${s.p1Phone||''}</td><td>${s.p2Type||''} ${s.p2Name||''} ${s.p2Phone||''}</td><td>${s.cls||''}</td><td>${won(s.amount)}</td><td>${s.memo||''}</td></tr>`).join('');
+}
+function delStudent(i){students.splice(i,1);localStorage.setItem('students',JSON.stringify(students));render();}
+function delConsult(i){consults.splice(i,1);localStorage.setItem('consults',JSON.stringify(consults));render();}
+function makeMessage(){
+  const name=msgName.value||'○○';
+  const amount=msgAmount.value||'';
+  if(msgType.value==='pay') msgText.value=`안녕하세요. 케이댄스스튜디오입니다😊\n\n${name} 학생 수강료 납부 안내드립니다.\n금액: ${amount}\n확인 부탁드립니다.`;
+  if(msgType.value==='renew') msgText.value=`안녕하세요. 케이댄스스튜디오입니다😊\n\n${name} 학생 재등록 기간 안내드립니다.\n수업 연장을 원하시면 연락 부탁드립니다.`;
+  if(msgType.value==='notice') msgText.value=`안녕하세요. 케이댄스스튜디오입니다😊\n\n${name} 학생 관련 공지 안내드립니다.\n확인 부탁드립니다.`;
+}
+function copyMessage(){navigator.clipboard.writeText(msgText.value);alert('복사되었습니다.');}
+function openSMS(){location.href='sms:?body='+encodeURIComponent(msgText.value);}
+function downloadCSV(){
+  const csv='이름,생년월일,학생연락처,보호자1,보호자2,등록반,결제금액,메모\n'+students.map(s=>[s.name,s.birth,s.phone,`${s.p1Type} ${s.p1Name} ${s.p1Phone}`,`${s.p2Type} ${s.p2Name} ${s.p2Phone}`,s.cls,s.amount,s.memo].map(v=>`"${String(v||'').replaceAll('"','""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='K_Dance_Manager_장부.csv';a.click();
+}
+function clearAll(){if(confirm('삭제할까요?')){students=[];consults=[];localStorage.clear();render();}}
+render();makeMessage();
+</script>
+</body>
+</html>
